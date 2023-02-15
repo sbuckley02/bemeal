@@ -40,6 +40,9 @@ Finally, to run the application, you can run the following command (same as last
 
 Note that will have to refresh the front-end window to see any changes from running the back-end.
 
+## Setting up Firebase
+Firebase is mostly set up already (because it's on the cloud and stuff), but you will need to create a `service_key` folder under the `bemeal-server` folder (i.e. resulting in something like `.../bemeal/bemeal-server/service_key`). Then, add the JSON key file in the `service_key` folder (i.e. the `bemeal-415...json` file).
+
 ## Documentation Links
 The application will use React.js, Node.js, Express.js (a Node framework), and Firebase. See the following links for their official documentation:
 
