@@ -62,12 +62,12 @@ app.post("/api/add-post", async (req, res) => {
 		const minutes = postTime.getUTCMinutes() / 10 < 1 ? "0" + postTime.getUTCMinutes().toString() : postTime.getUTCMinutes().toString();
 		const seconds = postTime.getUTCSeconds() / 10 < 1 ? "0" + postTime.getUTCSeconds().toString() : postTime.getUTCSeconds().toString();
 
-		const user = "/nathan-user-test/" + req.query.user;
+		const user = "/users/" + req.query.user;
 		if (!user) {
 			return res.status(400).send('Not all required body parameters given');
 		}
 	
-		await db.collection('nathan-posts-test').doc(postTime.getUTCFullYear().toString() + month + date + hours
+		await db.collection('posts').doc(postTime.getUTCFullYear().toString() + month + date + hours
 			+ minutes + seconds + "_" + req.query.user.toLowerCase()).set({
 				'user': user,
 				'time': postTime
@@ -91,7 +91,7 @@ app.post("/api/add-user", async (req, res) => {
 				return res.status(400).send('Not all required body parameters given');
 			}
 
-			await db.collection('nathan-user-test').doc(username).set({
+			await db.collection('users').doc(username).set({
 				'firstname': firstname, 'lastname': lastname,
 				'username': username, 'password' : password
 			});
@@ -111,7 +111,7 @@ app.get("/api/get-user", async (req, res) => {
 		return res.status(400).send('No username was provided.');
 	}
 
-	const snapshot = await db.collection('nathan-user-test').get();
+	const snapshot = await db.collection('users').get();
     const data = [];
 	snapshot.forEach((doc) => {
         if (doc._fieldsProto.username.stringValue == username) {
