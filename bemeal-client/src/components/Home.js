@@ -1,12 +1,11 @@
 // Imports
-import logo from '/Users/ethanli/bemeal/bemeal-client/src/bemeal logo.png';
+import logo from '../images/bemeal logo.png';
 import axios from 'axios';
 import {useState, useEffect} from 'react';
-
+import Button from 'react-bootstrap/Button';
 // A sample component arbitrarily called "Home"
 function Home() {
 	const [sampleBackendText, setSampleBackendText] = useState();
-
 	// When the component mounts, call the back-end API endpoint to
 	// get its text
 	useEffect(() => {
@@ -22,11 +21,13 @@ function Home() {
 	// Return the HTML that will display for this component, including an
  	// embedded variable
 	return (
-		<div>
+		<div className = "centerDiv">
 			<h2>Welcome to BeMeal!</h2>
 			<h3>In this application, you will be able to take photos of your meals 
 				3 times a day to show off to your friends, and see what your friends ate as well!</h3>
 			<img src={logo} className = "logo" alt="" />
+			<br />
+			<Button variant="primary" size = "lg" className = "startButton">Start</Button>{' '}
 			{/* <p>This text can be found in the nested component "Home". You're gonna want to change this text when you're able to</p>
 			<p>Here's something cool - the following text is retreived from the back-end:</p>
 			<code>{sampleBackendText}</code>

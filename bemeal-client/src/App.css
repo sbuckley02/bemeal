@@ -20,3 +20,19 @@
 .App-link {
   color: #61dafb;
 }
+
+.logo {
+  width: 350px;
+  height: 350px;
+}
+
+.startButton {
+  margin: auto;
+  margin-right: 500 px;
+  width: 70 px;
+  height: 50 px;
+}
+
+.centerDiv {
+  text-align: center;
+}
