@@ -55,14 +55,22 @@ app.get("/api/sample-req", (req, res) => {
 
 app.post("/api/add-post", async (req, res) => {
 	try {
-		// const postTime = 
+		const postTime = new Date();
+		const month = (postTime.getUTCMonth() + 1) / 10 < 1 ? "0" + (postTime.getUTCMonth() + 1).toString() : (postTime.getUTCMonth() + 1).toString();
+		const date = postTime.getUTCDate() / 10 < 1 ? "0" + postTime.getUTCDate().toString() : postTime.getUTCDate().toString();
+		const hours = postTime.getUTCHours() / 10 < 1 ? "0" + postTime.getUTCHours().toString() : postTime.getUTCHours().toString();
+		const minutes = postTime.getUTCMinutes() / 10 < 1 ? "0" + postTime.getUTCMinutes().toString() : postTime.getUTCMinutes().toString();
+		const seconds = postTime.getUTCSeconds() / 10 < 1 ? "0" + postTime.getUTCSeconds().toString() : postTime.getUTCSeconds().toString();
+
 		const user = "/nathan-user-test/" + req.query.user;
 		if (!user) {
 			return res.status(400).send('Not all required body parameters given');
 		}
 	
-		await db.collection('nathan-posts-test').doc("post" + postCount).set({
-			'user': user
+		await db.collection('nathan-posts-test').doc(postTime.getUTCFullYear().toString() + month + date + hours
+			+ minutes + seconds + "_" + req.query.user.toLowerCase()).set({
+				'user': user,
+				'time': postTime
 		});
 		return res.status(201).send({'success': 'Document successfully created'})
 	} catch (error) {
