@@ -17,6 +17,8 @@
 // Import libraries
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer')
+const upload = multer({ dest: 'images/' }) // not sure where this goes
 
 // Firebase-specific libraries
 const firebase = require("firebase");
@@ -78,6 +80,16 @@ app.post("/api/add-post", async (req, res) => {
 		return res.status(500).send({'error': 'Internal service error occurred'});
 	}
 });
+
+app.post('/api/images', upload.single('image'), (req, res) => {
+  // 4
+  const imageName = req.file.filename
+  const description = req.body.description
+
+  // Save this data to a firebase probably
+  console.log(description, imageName)
+  res.send({description, imageName})
+})
 
 // Create user with firstname, lastname, username, and password POST request
 app.post("/api/add-user", async (req, res) => {
