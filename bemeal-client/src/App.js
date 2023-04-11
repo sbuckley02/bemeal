@@ -1,5 +1,5 @@
 import './App.css';
-import Home from './components/Home';
+import Post from './components/Post';
 
 // The primary component for the entire application
 // This will contain the other components that you use
@@ -8,7 +8,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <Home />
+        <Post />
+        <Post />
+        <Post />
       </header>
     </div>
   );

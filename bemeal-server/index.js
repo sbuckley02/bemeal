@@ -14,13 +14,18 @@
  * 	Collections for each user
  */
 
+'use strict';
 // Import libraries
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
+const memoryStorage = multer.memoryStorage();
+const upload = multer({ memoryStorage: memoryStorage }).single('file');
 
 // Firebase-specific libraries
 const firebase = require("firebase");
 require("firebase/firestore");
+require("firebase/storage");
 const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
 
@@ -34,6 +39,8 @@ app.use(cors());
 // Same with this
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+let fileupload = require("express-fileupload");
+app.use(fileupload());
 
 // Authentication for the database - you'll want to make sure this JSON file is
 // present in the service_key folder as specified here
@@ -46,6 +53,7 @@ initializeApp({
 
 // Database object you can use to interact with Firebase DB
 const db = getFirestore();
+global.XMLHttpRequest = require("xhr2");
 
 // A sample API endpoint - a GET request that returns some text
 // when you make a request at .../api/sample-req
@@ -53,31 +61,67 @@ app.get("/api/sample-req", (req, res) => {
 	res.send('if you see this text, it worked 😎');
 });
 
-app.post("/api/add-post", async (req, res) => {
-	try {
-		const postTime = new Date();
-		const month = (postTime.getUTCMonth() + 1) / 10 < 1 ? "0" + (postTime.getUTCMonth() + 1).toString() : (postTime.getUTCMonth() + 1).toString();
-		const date = postTime.getUTCDate() / 10 < 1 ? "0" + postTime.getUTCDate().toString() : postTime.getUTCDate().toString();
-		const hours = postTime.getUTCHours() / 10 < 1 ? "0" + postTime.getUTCHours().toString() : postTime.getUTCHours().toString();
-		const minutes = postTime.getUTCMinutes() / 10 < 1 ? "0" + postTime.getUTCMinutes().toString() : postTime.getUTCMinutes().toString();
-		const seconds = postTime.getUTCSeconds() / 10 < 1 ? "0" + postTime.getUTCSeconds().toString() : postTime.getUTCSeconds().toString();
-
-		const user = "/users/" + req.query.user;
-		if (!user) {
-			return res.status(400).send('Not all required body parameters given');
-		}
-	
-		await db.collection('posts').doc(postTime.getUTCFullYear().toString() + month + date + hours
-			+ minutes + seconds + "_" + req.query.user.toLowerCase()).set({
-				'user': user,
-				'time': postTime
-		});
-		return res.status(201).send({'success': 'Document successfully created'})
-	} catch (error) {
-		console.log(error);
-		return res.status(500).send({'error': 'Internal service error occurred'});
+app.get('/api/get-posts', async (req,res) => {
+	const snapshot = await db.collection('posts').get();
+	const posts = [];
+	snapshot.forEach((doc) => {
+		posts.push(doc.data())
+	});
+	if (posts.length == 0) {
+		return res.status(404).send('User not found.');
+	} else {
+		return res.status(200).send({'data' : data});
 	}
 });
+
+// app.post("/api/add-post/", (req, res) => {
+// 	try {
+//      // Grab the file
+// 		console.log(req.body);
+//         // Format the filename
+//         const timestamp = Date.now();
+//         const name = file.originalname.split(".")[0];
+//         const type = file.originalname.split(".")[1];
+//         const fileName = `${name}_${timestamp}.${type}`;
+//          // Step 1. Create reference for file name in cloud storage 
+//         const imageRef = storage.child(fileName);
+//         // Step 2. Upload the file in the bucket storage
+//         const snapshot = await imageRef.put(file.buffer);
+//         // Step 3. Grab the public url
+//         const downloadURL = await snapshot.ref.getDownloadURL();
+//         res.send(downloadURL);
+// 		res.status(500).send("Test");
+//      } catch (error) {
+//     	console.log(error);
+//         res.status(400).send(error.message);
+//     }
+// });
+
+// app.post("/api/add-post", async (req, res) => {
+// 	try {
+// 		const postTime = new Date();
+// 		const month = (postTime.getUTCMonth() + 1) / 10 < 1 ? "0" + (postTime.getUTCMonth() + 1).toString() : (postTime.getUTCMonth() + 1).toString();
+// 		const date = postTime.getUTCDate() / 10 < 1 ? "0" + postTime.getUTCDate().toString() : postTime.getUTCDate().toString();
+// 		const hours = postTime.getUTCHours() / 10 < 1 ? "0" + postTime.getUTCHours().toString() : postTime.getUTCHours().toString();
+// 		const minutes = postTime.getUTCMinutes() / 10 < 1 ? "0" + postTime.getUTCMinutes().toString() : postTime.getUTCMinutes().toString();
+// 		const seconds = postTime.getUTCSeconds() / 10 < 1 ? "0" + postTime.getUTCSeconds().toString() : postTime.getUTCSeconds().toString();
+
+// 		const user = "/users/" + req.query.user;
+// 		if (!user) {
+// 			return res.status(400).send('Not all required body parameters given');
+// 		}
+	
+// 		await db.collection('posts').doc(postTime.getUTCFullYear().toString() + month + date + hours
+// 			+ minutes + seconds + "_" + req.query.user.toLowerCase()).set({
+// 				'user': user,
+// 				'time': postTime
+// 		});
+// 		return res.status(201).send({'success': 'Document successfully created'})
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).send({'error': 'Internal service error occurred'});
+// 	}
+// });
 
 // Create user with firstname, lastname, username, and password POST request
 app.post("/api/add-user", async (req, res) => {
@@ -125,69 +169,6 @@ app.get("/api/get-user", async (req, res) => {
 		return res.status(200).send({'data' : data});
 	}
 });
-
-
-// // Example of a GET request that retrieves all rows from the test-collection collection
-// app.get('/api/get-all-rows', async (req,res) => {
-// 	const snapshot = await db.collection('test-collection').get();
-// 	const data = [];
-// 	snapshot.forEach((doc) => {
-// 		data.push(doc.data())
-// 	});
-// 	res.send({'data': data});
-// });
-
-// // Example of a GET request that gets all rows with a number equal to the number
-// // you specify in the URL. For example, ...api/get-row-by-fav-number/2 gets all
-// // rows where favorite_number is 2
-// app.get('/api/get-row-by-fav-number/:fav_number', async (req, res) => {
-// 	const fav_number = parseInt(req.params.fav_number);
-
-// 	const test_coll = db.collection('test-collection');
-// 	const snapshot = await test_coll.where('favorite_number', '==', fav_number).get();
-// 	const data = [];
-// 	snapshot.forEach((doc) => {
-// 		data.push(doc.data())
-// 	});
-// 	res.send({'data': data});
-// });
-
-// // Example of a POST request that creates a document in test-collection
-// // You need to specify the name, favorite number, coolness, and states-lived as
-// // body parameters. A lot of this is error handling, so I'd focus on the main stuff
-// app.post('/api/create-row', async (req, res) => {
-// 	try {
-//     // Get the values for the new document from the request body
-// 		const name = req.body.name;
-// 		const fav_number = req.body.favorite_number;
-// 		const is_cool = req.body.is_cool;
-// 		const states_lived = req.body.states_lived;
-
-//     // If any fields were not specified, tell the requester that they're wrong
-// 		if (!name || (fav_number != 0 && !fav_number) || !is_cool
-// 			|| !states_lived) {
-// 			return res.status(400).send('Not all required body parameters given');
-// 		}
-
-//     // If the number specified is not a number, again tell requester they're wrong
-// 		if (isNaN(fav_number)) {
-// 			return res.status(400).send('The favorite number given must be an actual number');
-// 		}
-
-//     // This is where we actually add the document to the database
-// 		const test_coll = db.collection('test-collection');
-// 		await test_coll.add({
-// 			'name': name, 'favorite_number': fav_number,
-// 			'is_cool': is_cool, 'states_lived': states_lived
-// 		});
-
-//     // Return to the requester telling to them they did a good job
-// 		return res.status(201).send({'success': 'Document successfully created'})
-// 	} catch (error) {
-// 		console.log(error);
-// 		return res.status(500).send({'error': 'Internal service error occurred'});
-// 	}
-// });
 
 // Start the server
 app.listen(PORT, () => {
