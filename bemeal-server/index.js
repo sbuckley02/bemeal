@@ -18,9 +18,6 @@
 // Import libraries
 const express = require('express');
 const cors = require('cors');
-const multer = require('multer');
-const memoryStorage = multer.memoryStorage();
-const upload = multer({ memoryStorage: memoryStorage }).single('file');
 
 // Firebase-specific libraries
 const firebase = require("firebase");
@@ -39,8 +36,8 @@ app.use(cors());
 // Same with this
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-let fileupload = require("express-fileupload");
-app.use(fileupload());
+app.use(express.static('..\\public'));
+app.use("..\\public\\images", express.static('images'));
 
 // Authentication for the database - you'll want to make sure this JSON file is
 // present in the service_key folder as specified here
@@ -61,7 +58,7 @@ app.get("/api/sample-req", (req, res) => {
 	res.send('if you see this text, it worked 😎');
 });
 
-app.get('/api/get-posts', async (req,res) => {
+app.get('/api/get-posts', async (req, res) => {
 	const snapshot = await db.collection('posts').get();
 	const posts = [];
 	snapshot.forEach((doc) => {
